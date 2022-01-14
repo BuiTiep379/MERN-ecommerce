@@ -31,10 +31,24 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    verificationToken: {
+        type: String,
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    verified: Date,
     role: {
         type: String,
         enum: ["user", "admin"],
         default: "user",
+    },
+    passwordToken: {
+        type: String
+    },
+    passwordTokenExpirationDate: {
+        type: Date,
     },
     contactNumner: { type: String },
     profilePicture: { type: String },
@@ -51,6 +65,7 @@ userSchema.methods = {
     },
 };
 userSchema.pre('save', async function () {
+    if (!this.isModified('password')) return;
     // generate salt to hash password
     const salt = await bcrypt.genSalt(10);
     // now we set user password to hashed password

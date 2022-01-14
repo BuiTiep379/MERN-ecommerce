@@ -1,5 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const app = express();
 require('dotenv').config();
 //connect database 
@@ -11,13 +12,11 @@ const adminRouter = require('./src/routes/admin/auth');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('tiny'));
+app.use(cookieParser(process.env.JWT_SECRET));
 
 app.use('/api/auth', adminRouter);
 app.use('/api', userRouter);
 
-app.use('/', (req, res) => {
-    res.send('Hello world');
-});
 
 const PORT = process.env.PORT || 2000;
 

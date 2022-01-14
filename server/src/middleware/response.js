@@ -43,11 +43,11 @@ const Delete = (res, data) => {
 const ServerError = (res, error) => {
     return Response(res, { error }, StatusCodes.INTERNAL_SERVER_ERROR);
 };
-
+// yeu cau signin
 const Unauthenticated = (res, error) => {
     return Response(res, { error }, StatusCodes.UNAUTHORIZED);
 };
-
+// ko cho phep
 const Unauthorized = (res) => {
     return Response(res, { message: message.UNAUTHORIZE }, StatusCodes.FORBIDDEN);
 };
