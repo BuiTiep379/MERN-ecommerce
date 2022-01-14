@@ -3,13 +3,19 @@ const sendEmail = require('./sendEmail');
 const sendResetPasswordEmail = async ({
     firstName,
     email,
+    role,
     passwordToken,
     origin,
 }) => {
-    const resetPassword = `${origin}/auth/verify-email?passwordToken=${passwordToken}&email=${email}`;
+    let resetPassword;
+    if (role === 'admin') {
+        resetPassword = `${origin}/auth/reset-password?passwordToken=${passwordToken}&email=${email}`;
+    } else {
+        resetPassword = `${origin}/reset-password?tpasswordToken=${passwordToken}&email=${email}`;
+    }
 
     const message = `<p>Please reset your password by clicking on the following link : 
-  <a href="${resetPassword}">Verify Email</a> </p>`;
+  <a href="${resetPassword}">Reset password</a> </p>`;
 
     return sendEmail({
         to: email,

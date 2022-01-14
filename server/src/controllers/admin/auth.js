@@ -72,7 +72,7 @@ const signup = (req, res) => {
                 // });
                 const { firstName, email, verificationToken } = user;
                 const origin = `http://localhost:3000`;
-                await sendVerificationEmail({ firstName, email, verificationToken, origin });
+                await sendVerificationEmail({ firstName, email, role: user.role, verificationToken, origin });
                 res.status(201).json({
                     msg: 'Success! check email to verify account',
                     verificationToken
@@ -117,7 +117,7 @@ const forgotPassword = async (req, res) => {
     const passwordToken = crypto.randomBytes(70).toString('hex');
     const passwordTokenExpirationDate = new Date(Date.now() + tenMinutes);
     const origin = `http://localhost:3000`;
-    await sendResetPasswordEmail({ firstName: user.firstName, email, passwordToken, origin });
+    await sendResetPasswordEmail({ firstName: user.firstName, email, role: user.role, passwordToken, origin });
     user.passwordToken = passwordToken;
     user.passwordTokenExpirationDate = passwordTokenExpirationDate;
     await user.save();
