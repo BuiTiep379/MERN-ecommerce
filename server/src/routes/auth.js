@@ -1,10 +1,14 @@
 const express = require('express');
 const router = express.Router();
-
-const { signup, signin, signout } = require('../controllers/auth');
+const { authenticateUser } = require('../middleware/authenticate');
+const { signup, signin, signout, verifyEmail, forgotPassword, resetPassword } = require('../controllers/auth');
 
 router.post('/signup', signup);
 router.post('/signin', signin);
-router.post('/signout', signout);
+router.delete('/signout', authenticateUser, signout);
+router.post('/verify-email', verifyEmail);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
+router.get('/show-me', authenticateUser, (req, res) => console.log('tiep'))
 
 module.exports = router;

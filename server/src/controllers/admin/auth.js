@@ -1,13 +1,12 @@
 const User = require('../../models/user');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const shortid = require('shortid')
-const { Create, ServerError, BadRequest, Response, Unauthorized, Unauthenticated, NotFound } = require('../../middleware/response');
-const { attachCookiesToResponse, createTokenUser, sendMail, sendVerificationEmail, sendResetPasswordEmail } = require('../../utils');
 const Token = require('../../models/token');
+const crypto = require('crypto');
+const shortid = require('shortid');
+const { Create, ServerError, BadRequest, Response, Unauthorized, Unauthenticated, NotFound } = require('../../middleware/response');
+const { attachCookiesToResponse, createTokenUser, sendMail, sendVerificationEmail, sendResetPasswordEmail, createHash } = require('../../utils');
 const signin = async (req, res) => {
     User.findOne({ email: req.body.email }).exec(async (error, user) => {
-        if (error) return ServerError(res, error);
+        if (error) return ServerError(res, error.message);
         if (!user) return BadRequest(res, "Admin does not exist");
         const isAuthen = await user.authenticate(req.body.password);
         if (!isAuthen) return BadRequest(res, "Wrong password");
@@ -47,7 +46,7 @@ const signin = async (req, res) => {
 
 const signup = (req, res) => {
     User.findOne({ email: req.body.email }).exec(async (error, user) => {
-        if (error) return ServerError(res, error);
+        if (error) return ServerError(res, error.message);
         // đã có user 
         if (user) return BadRequest(res, "Admin already registered");
         const { firstName, lastName, email, password } = req.body;
@@ -65,18 +64,14 @@ const signup = (req, res) => {
         newUser.save(async (error, user) => {
             if (error) return ServerError(res, error.message);
             if (user) {
-                // const tokenUser = createTokenUser(user);
-                // attachCookiesToResponse({ res, user: tokenUser });
-                // return Create(res, {
-                //     user: tokenUser,
-                // });
                 const { firstName, email, verificationToken } = user;
                 const origin = `http://localhost:3000`;
                 await sendVerificationEmail({ firstName, email, role: user.role, verificationToken, origin });
-                res.status(201).json({
-                    msg: 'Success! check email to verify account',
+                return Create(
+                    res,
+                    'Success! check email to verify account',
                     verificationToken
-                })
+                )
             }
         })
     })
@@ -84,7 +79,7 @@ const signup = (req, res) => {
 const verifyEmail = (req, res, next) => {
     const { email, verificationToken } = req.body;
     User.findOne({ email: email }).exec(async (error, user) => {
-        if (error) return ServerError(res, error);
+        if (error) return ServerError(res, error.message);
         if (!user) return NotFound(res, "Admin");
         if (user.verificationToken !== verificationToken) return BadRequest(res, "Token does not match verification token");
         user.isVerified = true;
@@ -93,14 +88,7 @@ const verifyEmail = (req, res, next) => {
         user.save(async (error, user) => {
             if (error) return ServerError(res, error.message);
             if (user) {
-                // const tokenUser = createTokenUser(user);
-                // attachCookiesToResponse({ res, user: tokenUser });
-                // return Create(res, {
-                //     user: tokenUser,
-                // });
-                res.status(201).json({
-                    msg: 'Success! ',
-                })
+                return Response(res, { message: 'Success! Account is active' });
             }
         })
     })
@@ -118,12 +106,10 @@ const forgotPassword = async (req, res) => {
     const passwordTokenExpirationDate = new Date(Date.now() + tenMinutes);
     const origin = `http://localhost:3000`;
     await sendResetPasswordEmail({ firstName: user.firstName, email, role: user.role, passwordToken, origin });
-    user.passwordToken = passwordToken;
+    user.passwordToken = createHash(passwordToken);;
     user.passwordTokenExpirationDate = passwordTokenExpirationDate;
     await user.save();
-    res.status(200).json({
-        msg: 'Please check your email for reset password link',
-    })
+    return Response(res, { message: 'Please check your email for reset password link' });
 }
 const resetPassword = async (req, res) => {
     const { passwordToken, email, password } = req.body;
@@ -131,15 +117,15 @@ const resetPassword = async (req, res) => {
         return BadRequest(res, 'Please provide all values');
     }
     const user = await User.findOne({ email });
-    if (!user) return NotFound(res, "User");
+    if (!user) return NotFound(res, "Admin");
     const currentDate = new Date();
-    if (user.passwordToken === passwordToken && user.passwordTokenExpirationDate > currentDate) {
+    if (user.passwordToken === createHash(passwordToken) && user.passwordTokenExpirationDate > currentDate) {
         user.password = password;
         user.passwordToken = null;
         user.passwordTokenExpirationDate = null;
         await user.save();
     }
-    res.send('reset password');
+    return Response(res, { message: 'Reset password successfully!' });
 }
 
 const signout = async (req, res) => {

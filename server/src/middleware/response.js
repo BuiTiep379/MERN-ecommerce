@@ -20,10 +20,10 @@ const Get = (res, data) => {
         StatusCodes.OK
     )
 };
-const Create = (res, data) => {
+const Create = (res, msg, data) => {
     return Response(
         res,
-        { message: message.CREATE, data },
+        { message: `${!msg ? message.CREATE : msg}`, data },
         StatusCodes.CREATED
     )
 };
