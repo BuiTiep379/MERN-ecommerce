@@ -4,7 +4,7 @@ const sendMail = async ({ to, subject, html }) => {
     const transporter = nodemailer.createTransport(nodemailerConfig);
 
     return transporter.sendMail({
-        from: `"Bui Tiep"`,
+        from: process.env.EMAIL_USER,
         to,
         subject,
         html,
