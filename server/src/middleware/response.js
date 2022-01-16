@@ -40,20 +40,20 @@ const Delete = (res, data) => {
         data,
     });
 };
-const ServerError = (res, error) => {
-    return Response(res, { error }, StatusCodes.INTERNAL_SERVER_ERROR);
+const ServerError = (res, message) => {
+    return Response(res, { message }, StatusCodes.INTERNAL_SERVER_ERROR);
 };
 // yeu cau signin
-const Unauthenticated = (res, error) => {
-    return Response(res, { error }, StatusCodes.UNAUTHORIZED);
+const Unauthenticated = (res, message) => {
+    return Response(res, { message }, StatusCodes.UNAUTHORIZED);
 };
 // ko cho phep
 const Unauthorized = (res) => {
     return Response(res, { message: message.UNAUTHORIZE }, StatusCodes.FORBIDDEN);
 };
 
-const BadRequest = (res, error) => {
-    return Response(res, { error }, StatusCodes.BAD_REQUEST);
+const BadRequest = (res, message) => {
+    return Response(res, { message }, StatusCodes.BAD_REQUEST);
 };
 
 const NotFound = (res, input) => {

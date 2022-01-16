@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const app = express();
@@ -11,6 +12,7 @@ const adminRouter = require('./src/routes/admin/auth');
 // middleware 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/public", express.static(path.join(__dirname, "./src/uploads")));
 app.use(morgan('tiny'));
 app.use(cookieParser(process.env.JWT_SECRET));
 

@@ -1,23 +1,25 @@
-const { isTokenValid } = require('../utils/jwt');
+const { isTokenValid } = require('../utils');
 const { attachCookiesToResponse } = require('../utils');
 const { Unauthenticated, Unauthorized } = require('./response');
 const authenticateUser = async (req, res, next) => {
     const { accessToken, refreshToken } = req.signedCookies;
-
+    console.log(accessToken, refreshToken);
     try {
         if (accessToken) {
-            const { name, userId, role } = isTokenValid(accessToken);
-            req.user = { name, userId, role };
+            const decoded = isTokenValid(accessToken);
+            const { user: { fullName, userId, role } } = decoded;
+            req.user = { fullName, userId, role };
+            console.log(decoded)
             return next();
         }
-        const payload = isTokenValid(refreshToken);
-        console.log(payload);
-        const existingToken = await Token.findOne({ user: payload.user.userId, refreshToken: payload.refreshToken });
+        const decoded = isTokenValid(refreshToken);
+        const existingToken = await Token.findOne({ user: decoded.user.userId, refreshToken: decoded.refreshToken });
         if (!existingToken || !existingToken?.isValid) {
             Unauthenticated(res);
         };
-        attachCookiesToResponse({ res, user: payload.user, refreshToken });
-        req.user = payload.user;
+        attachCookiesToResponse({ res, user: decoded.user, refreshToken });
+        req.user = decoded.user;
+        // console.log(decoded.user);
         next();
     } catch (error) {
         Unauthenticated(res, error);
