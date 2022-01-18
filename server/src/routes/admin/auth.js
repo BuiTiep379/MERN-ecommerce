@@ -22,6 +22,6 @@ router.post('/verify-email', verifyEmail);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.get('/show-profile', authenticateUser, showProfile)
-router.post('/update-profile', authenticateUser, upload.single('profilePicture'), updateProfile);
-router.post('/change-password', authenticateUser, changePassword);
+router.patch('/update-profile', authenticateUser, upload.single('profilePicture'), updateProfile);
+router.patch('/change-password', authenticateUser, changePassword);
 module.exports = router;

@@ -125,7 +125,45 @@ const resetPassword = async (req, res) => {
     }
     return Response(res, { message: 'Reset password successfully!' });
 }
+const showProfile = async (req, res) => {
+    const user = await User.findOne({ _id: req.user.userId }).select('email firstName lastName contactNumner profilePicture role');
+    return Response(res, { user });
+}
+const updateProfile = async (req, res) => {
+    const { firstName, lastName } = req.body;
+    let user = await User.findOne({ _id: req.user.userId });
+    user.firstName = firstName;
+    user.lastName = lastName;
+    if (req.body.contactNumner) {
+        user.contactNumner = req.body.contactNumner;
+    }
+    if (req.file) {
+        user.profilePicture = req.file.filename;
+    }
+    user.save(async (error, user) => {
+        if (error) return ServerError(res, error.message);
+        if (user) {
+            return Response(res, { message: 'Success! Profile updated' });
+        }
+    })
+};
 
+const changePassword = async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    if (oldPassword === newPassword) {
+        return BadRequest(res, "New password must be different old password");
+    }
+    const user = await User.findOne({ _id: req.user.userId });
+    const isAuthen = await user.authenticate(oldPassword);
+    if (!isAuthen) return BadRequest(res, "Wrong password");
+    user.password = newPassword;
+    user.save(async (error, user) => {
+        if (error) return ServerError(res, error.message);
+        if (user) {
+            return Response(res, { message: 'Success! Password is updated' });
+        }
+    })
+}
 const signout = async (req, res) => {
     await Token.findOneAndDelete({ user: req.user.userId });
     res.cookie('accessToken', 'signout', {
@@ -141,5 +179,13 @@ const signout = async (req, res) => {
 };
 
 module.exports = {
-    signin, signup, signout, verifyEmail, forgotPassword, resetPassword
+    signin,
+    signup,
+    signout,
+    verifyEmail,
+    forgotPassword,
+    resetPassword,
+    updateProfile,
+    showProfile,
+    changePassword,
 }

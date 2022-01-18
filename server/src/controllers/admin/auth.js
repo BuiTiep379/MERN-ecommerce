@@ -193,5 +193,4 @@ module.exports = {
     updateProfile,
     showProfile,
     changePassword,
-
 }
